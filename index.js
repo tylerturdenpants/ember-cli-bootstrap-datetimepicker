@@ -5,21 +5,28 @@ const Funnel = require('broccoli-funnel');
 const path = require('path');
 const mergeTrees = require('broccoli-merge-trees');
 
+
+var defaultOptions = {
+  importStyles: true
+};
+
 module.exports = {
   name: 'ember-cli-bootstrap-datetimepicker',
 
   included: function(app) {
     this._super.included(app);
-
+	var app = this._findHost();
+    var options = Object.assign(defaultOptions, app.options['ember-cli-bootstrap-datetimepicker']);
     // Import unminified css and js
     let basePath = `${this.treePaths.vendor}/eonasdan-bootstrap-datetimepicker`;
-    app.import(`${basePath}/build/css/bootstrap-datetimepicker.css`);
+	if( options.importStyles ){
+		app.import(`${basePath}/build/css/bootstrap-datetimepicker.css`);
+	}
     app.import(`${basePath}/src/js/bootstrap-datetimepicker.js`);
   },
 
   treeForVendor: function(vendorTree) {
     let trees = [];
-
     if (vendorTree) {
       trees.push(vendorTree);
     }
@@ -32,5 +39,19 @@ module.exports = {
     }));
 
     return mergeTrees(trees);
-  }
+},
+
+  	_findHost: function() {
+  	  var current = this;
+  	  var app;
+
+  	  // Keep iterating upward until we don't have a grandparent.
+  	  // Has to do this grandparent check because at some point we hit the project.
+  	  do {
+  		app = current.app || app;
+  	  } while (current.parent.parent && (current = current.parent));
+
+  	  return app;
+  	},
+
 };
